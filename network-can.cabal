@@ -1,0 +1,31 @@
+cabal-version:       2.2
+name:                network-can
+version:             0.1.0.0
+synopsis:            CAN bus networking
+description:         Talk to CAN buses using Linux SocketCAN and SLCAN
+homepage:            https://github.com/DistRap/network-can
+license:             BSD-3-Clause
+license-file:        LICENSE
+author:              sorki
+maintainer:          srk@48.io
+copyright:           2024 sorki
+category:            Network
+build-type:          Simple
+
+extra-source-files:
+    LICENSE
+    README.md
+
+extra-doc-files:
+    CHANGELOG.md
+
+library
+  ghc-options:         -Wall
+  hs-source-dirs:      src
+  exposed-modules:     Network.CAN
+  build-depends:       base >= 4.7 && < 5
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/DistRap/network-can-core
