@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Network.SLCAN.Parse
+module Network.SLCAN.Parser
   ( parseSLCANMessage
   ) where
 
@@ -33,7 +33,7 @@ arbitrationId = do
       Data.Attoparsec.ByteString.Char8.char 't' *> stdID False
   <|> Data.Attoparsec.ByteString.Char8.char 'r' *> stdID True
   <|> Data.Attoparsec.ByteString.Char8.char 'T' *> extID False
-  <|> Data.Attoparsec.ByteString.Char8.char 'r' *> extID True
+  <|> Data.Attoparsec.ByteString.Char8.char 'R' *> extID True
 
 stdID
   :: Bool
@@ -75,30 +75,6 @@ hexadecimalWithLength len =
     pure
     . Data.Attoparsec.ByteString.Char8.parseOnly
         Data.Attoparsec.ByteString.Char8.hexadecimal
- {--
- pure
-   $ sum
-   $ map
-      (\(ascii, shift) ->
-        Data.Bits.shiftL
-          (fromIntegral $ toBin ascii)
-          (shift * 4)
-      )
-   $ zip
-       (Data.ByteString.Char8.unpack bs)
-       [len - 1, len -2 ..]
-
-toBin :: Char -> Word8
-toBin x | x `elem` ['0'..'9'] =
-  fromIntegral
-    $ Data.Char.ord x - Data.Char.ord '0'
-toBin x | x `elem` ['A'..'F'] =
-  fromIntegral
-    $ (Data.Char.ord x - Data.Char.ord 'A') + 10
-toBin x | otherwise =
-  fromIntegral
-    $ (Data.Char.ord x - Data.Char.ord 'a') + 10
-  --}
 
 parseSLCANMessage
   :: ByteString

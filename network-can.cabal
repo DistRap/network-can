@@ -23,7 +23,28 @@ library
   ghc-options:         -Wall
   hs-source-dirs:      src
   exposed-modules:     Network.CAN
-  build-depends:       base >= 4.7 && < 5
+                       Network.CAN.Types
+                       Network.CAN.Monad
+                       Network.SLCAN
+                       Network.SLCAN.Builder
+                       Network.SLCAN.Parser
+                       Network.SocketCAN
+                       Network.SocketCAN.Bindings
+                       Network.SocketCAN.LowLevel
+
+                       Network.CAN.Test
+  build-depends:       base >= 4.7 && < 5,
+                       attoparsec >= 0.14,
+                       bytestring,
+                       exceptions,
+                       mtl,
+                       network >= 3.1,
+                       serialport >= 0.5,
+                       transformers
+                       -- test
+                       ,linux-namespaces
+
+  build-tool-depends:  hsc2hs:hsc2hs
   default-language:    Haskell2010
 
 source-repository head
