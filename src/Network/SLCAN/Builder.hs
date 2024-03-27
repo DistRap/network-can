@@ -23,6 +23,7 @@ slCANBuilder CANMessage{..} =
          Data.ByteString.Builder.word8Hex
          canMessageData
       )
+  <> Data.ByteString.Builder.char7 '\r'
 
 arbitrationId
   :: CANArbitrationField

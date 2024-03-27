@@ -19,6 +19,7 @@ slCANParser = do
   msgLen <- hexadecimalWithLength 1
   canMessageData <-
     Control.Monad.replicateM msgLen (hexadecimalWithLength 2)
+  _ <- Data.Attoparsec.ByteString.Char8.char '\r'
   pure CANMessage{..}
 
 -- | Parse arbitration ID

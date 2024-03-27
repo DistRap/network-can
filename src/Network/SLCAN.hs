@@ -3,7 +3,8 @@
 module Network.SLCAN
   ( SLCANT
   , runSLCANT
-  , runSLCAN
+  , runSLCANFilePath
+  , runSLCANSerialPort
   ) where
 
 import Control.Monad (void)
@@ -16,23 +17,26 @@ import Control.Monad.Trans.Except (ExceptT, runExceptT)
 import Control.Monad.Trans.Reader (ReaderT, runReaderT)
 
 import Network.CAN.Monad (CANError(..), MonadCAN(..))
-import System.Hardware.Serialport (SerialPort, SerialPortSettings)
+import System.IO (Handle)
+import System.Hardware.Serialport (SerialPortSettings)
 
 import qualified Control.Monad.Catch
+import qualified Data.ByteString
 import qualified System.Hardware.Serialport
+import qualified System.IO
 import qualified Network.SLCAN.Builder
 import qualified Network.SLCAN.Parser
 
 newtype SLCANT m a = SLCANT
   { _unSLCANT
       :: ExceptT CANError
-          (ReaderT SerialPort m) a
+          (ReaderT Handle m) a
   }
   deriving
     ( Functor
     , Applicative
     , Monad
-    , MonadReader SerialPort
+    , MonadReader Handle
     , MonadError CANError
     , MonadCatch
     , MonadMask
@@ -46,15 +50,32 @@ instance MonadTrans SLCANT where
 -- | Run SLCANT transformer
 runSLCANT
   :: Monad m
-  => SerialPort
+  => Handle
   -> SLCANT m a
   -> m (Either CANError a)
-runSLCANT sp =
-    (`runReaderT` sp)
+runSLCANT handle =
+    (`runReaderT` handle)
   . runExceptT
   . _unSLCANT
 
-runSLCAN
+runSLCANFilePath
+  :: ( MonadIO m
+     , MonadMask m
+     )
+  => FilePath
+  -> SLCANT m a
+  -> m (Either CANError a)
+runSLCANFilePath fp act = do
+  Control.Monad.Catch.bracket
+    (liftIO
+     $ System.IO.openFile
+         fp
+         System.IO.ReadWriteMode
+    )
+    (liftIO . System.IO.hClose)
+    (\handle -> runSLCANT handle act)
+
+runSLCANSerialPort
   :: ( MonadIO m
      , MonadMask m
      )
@@ -62,31 +83,31 @@ runSLCAN
   -> SerialPortSettings
   -> SLCANT m a
   -> m (Either CANError a)
-runSLCAN fp settings act = do
+runSLCANSerialPort fp settings act = do
   Control.Monad.Catch.bracket
     (liftIO
-     $ System.Hardware.Serialport.openSerial
+     $ System.Hardware.Serialport.hOpenSerial
          fp
          settings
     )
-    (liftIO . System.Hardware.Serialport.closeSerial)
-    (\sp -> runSLCANT sp act)
+    (liftIO . System.IO.hClose)
+    (\handle -> runSLCANT handle act)
 
 instance MonadIO m => MonadCAN (SLCANT m) where
   send cm = do
-    sp <- ask
+    handle <- ask
     void
       $ liftIO
-      $ System.Hardware.Serialport.send
-          sp
+      $ Data.ByteString.hPutStr
+          handle
           (Network.SLCAN.Builder.buildSLCANMessage cm)
 
   recv = do
-    sp <- ask
+    handle <- ask
     raw <-
       liftIO
-      $ System.Hardware.Serialport.recv
-          sp
+      $ Data.ByteString.hGet
+          handle
           1024
 
     case Network.SLCAN.Parser.parseSLCANMessage raw of
