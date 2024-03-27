@@ -1,5 +1,4 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE RecordWildCards #-}
 module Network.SocketCAN
   ( SocketCANT
   , runSocketCANT
@@ -14,18 +13,14 @@ import Control.Monad.Trans (MonadTrans, lift)
 import Control.Monad.Trans.Except (ExceptT, runExceptT)
 import Control.Monad.Trans.Reader (ReaderT, runReaderT)
 
-import Data.Bits ((.&.), (.|.), shiftL)
-import Data.Word (Word32)
-
 import Network.CAN.Monad (CANError(..), MonadCAN(..))
-import Network.CAN.Types (CANArbitrationField(..), CANMessage(..))
 import Network.Socket (Socket)
-import Network.SocketCAN.Bindings (SockAddrCAN(..), SocketCANArbitrationField(..), SocketCANFrame(..))
+import Network.SocketCAN.Bindings (SockAddrCAN(..))
 
 import qualified Control.Monad.Catch
-import qualified Data.Bool
 import qualified Network.Socket
 import qualified Network.SocketCAN.LowLevel
+import qualified Network.SocketCAN.Translate
 
 newtype SocketCANT m a = SocketCANT
   { _unSocketCANT
@@ -95,71 +90,9 @@ instance MonadIO m => MonadCAN (SocketCANT m) where
     liftIO
       $ Network.SocketCAN.LowLevel.send
           canSock
-          (toSocketCANFrame cm)
+          (Network.SocketCAN.Translate.toSocketCANFrame cm)
   recv = do
     canSock <- ask
     liftIO
       $ Network.SocketCAN.LowLevel.recv canSock
-      >>= pure . fromSocketCANFrame
-
-toSocketCANFrame
-  :: CANMessage
-  -> SocketCANFrame
-toSocketCANFrame CANMessage{..} =
-  SocketCANFrame
-  { socketCANFrameArbitrationField =
-      toSocketCANArbitrationField
-        canMessageArbitrationField
-  , socketCANFrameLength =
-      fromIntegral $ length canMessageData
-  , socketCANFrameData = canMessageData
-  }
-
-fromSocketCANFrame
-  :: SocketCANFrame
-  -> CANMessage
-fromSocketCANFrame SocketCANFrame{..} =
-  CANMessage
-  { canMessageArbitrationField =
-      fromSocketCANArbitrationField
-        socketCANFrameArbitrationField
-  , canMessageData = socketCANFrameData
-  }
-
-toSocketCANArbitrationField
-  :: CANArbitrationField
-  -> SocketCANArbitrationField
-toSocketCANArbitrationField CANArbitrationField{..} =
-  SocketCANArbitrationField
-  $ Data.Bool.bool
-      id
-      (.|. effBit)
-      canArbitrationFieldExtended
-  $ Data.Bool.bool
-      id
-      (.|. rtrBit)
-      canArbitrationFieldRTR
-  $ canArbitrationFieldID
-fromSocketCANArbitrationField
-  :: SocketCANArbitrationField
-  -> CANArbitrationField
-fromSocketCANArbitrationField (SocketCANArbitrationField scid) =
-  let
-    isEff = scid .&. effBit /= 0
-  in
-    CANArbitrationField
-    { canArbitrationFieldID =
-        Data.Bool.bool
-          (.&. (1 `shiftL` 12 - 1))
-          (.&. (1 `shiftL` 30 - 1))
-          isEff
-        $ scid
-    , canArbitrationFieldExtended = isEff
-    , canArbitrationFieldRTR = scid .&. rtrBit /= 0
-    }
-
-effBit :: Word32
-effBit = 1 `shiftL` 31
-
-rtrBit :: Word32
-rtrBit = 1 `shiftL` 30
+      >>= pure . Network.SocketCAN.Translate.fromSocketCANFrame

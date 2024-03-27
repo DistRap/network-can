@@ -31,6 +31,7 @@ library
                        Network.SocketCAN
                        Network.SocketCAN.Bindings
                        Network.SocketCAN.LowLevel
+                       Network.SocketCAN.Translate
 
                        Network.CAN.Test
   build-depends:       base >= 4.7 && < 5,
@@ -41,10 +42,22 @@ library
                        network >= 3.1,
                        serialport >= 0.5,
                        transformers
-                       -- test
-                       ,linux-namespaces
 
   build-tool-depends:  hsc2hs:hsc2hs
+  default-language:    Haskell2010
+
+test-suite pure
+  type:                exitcode-stdio-1.0
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  other-modules:       Samples
+                       SocketCANSpec
+                       SLCANSpec
+  build-tool-depends:  hspec-discover:hspec-discover
+  build-depends:       base >= 4.7 && < 5
+                     , hspec
+                     , network-can
   default-language:    Haskell2010
 
 source-repository head

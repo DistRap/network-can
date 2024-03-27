@@ -13,8 +13,6 @@ import Network.CAN.Types (CANArbitrationField(..), CANMessage(..))
 import qualified Data.Attoparsec.ByteString.Char8
 import qualified Control.Monad
 
--- t10021133
--- std
 slCANParser :: Parser CANMessage
 slCANParser = do
   canMessageArbitrationField <- arbitrationId

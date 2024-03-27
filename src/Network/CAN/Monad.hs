@@ -18,6 +18,7 @@ import Network.CAN.Types (CANMessage(..))
 
 data CANError
   = CANError_NoSuchInterface String
+  | CANError_SLCANParseError String
   deriving (Eq, Show)
 
 class ( MonadIO m
