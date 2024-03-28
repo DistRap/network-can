@@ -28,6 +28,7 @@ library
                        Network.SLCAN
                        Network.SLCAN.Builder
                        Network.SLCAN.Parser
+                       Network.SLCAN.Types
                        Network.SocketCAN
                        Network.SocketCAN.Bindings
                        Network.SocketCAN.LowLevel
