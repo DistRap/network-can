@@ -1,0 +1,18 @@
+
+# socat bridge
+# as root
+socat -d -d pty,link=/dev/ttyS0,raw,echo=0 pty,link=/dev/ttyS1,raw,echo=0
+# dump what's coming from slcan driver
+cat /dev/ttyS1 | xxd -c1 -g1
+
+# new slcan init
+slcan_attach /dev/ttyS0
+slcand ttyS0 can0
+ip link set dev can0 type can bitrate 500000
+ip link set dev can0 up
+
+
+# priv flags
+ethtool  --show-priv-flags can0
+ethtool --set-priv-flags can0 err-rst-on-open on
+# sends 'F' which means reset errors
