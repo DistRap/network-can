@@ -121,6 +121,7 @@ instance MonadIO m => MonadCAN (SLCANT m) where
       Left e -> throwError $ CANError_SLCANParseError e
       Right (SLCANMessage_Data cmsg) -> pure cmsg
       -- XXX: we can only get SLCANMessage_State
-      -- or SLCANMessage_Error, while the state
-      -- is safe to ignore, we should do something about the errors
+      -- or SLCANMessage_Error
+      -- we should do something about the errors
+      -- or i.e. Passive/BusOff state
       Right _ -> recv
