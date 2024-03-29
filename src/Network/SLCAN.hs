@@ -17,6 +17,11 @@ import Control.Monad.Trans.Except (ExceptT, runExceptT)
 import Control.Monad.Trans.Reader (ReaderT, runReaderT)
 
 import Network.CAN.Monad (CANError(..), MonadCAN(..))
+import Network.SLCAN.Types
+  ( SLCANMessage(..)
+  , SLCANControl(..)
+  , SLCANBitrate(..)
+  )
 import System.IO (Handle)
 import System.Hardware.Serialport (SerialPortSettings)
 
@@ -100,7 +105,9 @@ instance MonadIO m => MonadCAN (SLCANT m) where
       $ liftIO
       $ Data.ByteString.hPutStr
           handle
-          (Network.SLCAN.Builder.buildSLCANMessage cm)
+          (Network.SLCAN.Builder.buildSLCANMessage
+             $ SLCANMessage_Data cm
+          )
 
   recv = do
     handle <- ask

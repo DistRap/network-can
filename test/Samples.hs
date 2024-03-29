@@ -13,6 +13,10 @@ samples =
       mempty
 
   , standardMessage
+      0xFFF
+      mempty
+
+  , standardMessage
       0x123
       [0xDE, 0xAD]
 

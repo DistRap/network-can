@@ -38,6 +38,8 @@ library
   build-depends:       base >= 4.7 && < 5,
                        attoparsec >= 0.14,
                        bytestring,
+                       containers,
+                       data-default-class,
                        exceptions,
                        mtl,
                        network >= 3.1,

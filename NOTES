@@ -16,3 +16,13 @@ ip link set dev can0 up
 ethtool  --show-priv-flags can0
 ethtool --set-priv-flags can0 err-rst-on-open on
 # sends 'F' which means reset errors
+
+
+# sysfs
+/proc/net/can/
+
+# DOcs
+## SocketCAN docs
+https://www.kernel.org/doc/html/latest/networking/can.html
+## SLCAN docs
+http://www.can232.com/docs/can232_v3.pdf

@@ -3,6 +3,7 @@ module SLCANSpec where
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Samples
 
+import Network.SLCAN.Types (SLCANMessage(..))
 import qualified Network.SLCAN.Builder
 import qualified Network.SLCAN.Parser
 
@@ -14,6 +15,6 @@ spec = do
         (\x ->
           (   Network.SLCAN.Parser.parseSLCANMessage
           <$> Network.SLCAN.Builder.buildSLCANMessage
-          ) x
+          ) (SLCANMessage_Data x)
           `shouldBe` pure x
         ) samples
