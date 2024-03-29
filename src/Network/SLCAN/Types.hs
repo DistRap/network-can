@@ -37,7 +37,7 @@ data SLCANBitrate
   | SLCANBitrate_500K
   | SLCANBitrate_800K
   | SLCANBitrate_1M
-  deriving (Eq, Enum, Ord, Show)
+  deriving (Bounded, Eq, Enum, Ord, Show)
 
 instance Default SLCANBitrate where
   def = SLCANBitrate_1M

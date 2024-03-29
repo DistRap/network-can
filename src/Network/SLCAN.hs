@@ -19,8 +19,8 @@ import Control.Monad.Trans.Reader (ReaderT, runReaderT)
 import Network.CAN.Monad (CANError(..), MonadCAN(..))
 import Network.SLCAN.Types
   ( SLCANMessage(..)
-  , SLCANControl(..)
-  , SLCANBitrate(..)
+--  , SLCANControl(..)
+--  , SLCANBitrate(..)
   )
 import System.IO (Handle)
 import System.Hardware.Serialport (SerialPortSettings)
@@ -119,4 +119,8 @@ instance MonadIO m => MonadCAN (SLCANT m) where
 
     case Network.SLCAN.Parser.parseSLCANMessage raw of
       Left e -> throwError $ CANError_SLCANParseError e
-      Right x -> pure x
+      Right (SLCANMessage_Data cmsg) -> pure cmsg
+      -- XXX: we can only get SLCANMessage_State
+      -- or SLCANMessage_Error, while the state
+      -- is safe to ignore, we should do something about the errors
+      Right _ -> recv

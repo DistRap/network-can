@@ -39,10 +39,10 @@ slCANControlBuilder SLCANControl_Open =
   Data.ByteString.Builder.char7 'O'
 slCANControlBuilder SLCANControl_Close =
   Data.ByteString.Builder.char7 'C'
-slCANControlBuilder (SLCANControl_Bitrate speed) =
+slCANControlBuilder (SLCANControl_Bitrate bitrate) =
      Data.ByteString.Builder.char7 'S'
   <> Data.ByteString.Builder.intDec
-      (fromEnum speed)
+      (fromEnum bitrate)
 slCANControlBuilder SLCANControl_ResetErrors =
   Data.ByteString.Builder.char7 'F'
 slCANControlBuilder SLCANControl_ListenOnly =
