@@ -4,7 +4,10 @@ import Control.Monad (forever)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 
 import Network.CAN
+import Network.SLCAN
 import Network.SocketCAN
+
+import Data.Default.Class
 
 tst :: IO (Either CANError ())
 tst = do
@@ -26,4 +29,15 @@ tst = do
 
     forever
       $ recv
+      >>= liftIO . print
+
+tstCO :: IO (Either CANError ())
+tstCO = do
+  runSLCANFilePath "/dev/ttyS0" def $ do
+    send
+      $ Network.CAN.standardMessage
+          0x7E5
+          [0x4C]
+
+    recv
       >>= liftIO . print

@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 module Network.SLCAN
   ( SLCANT
@@ -7,7 +8,6 @@ module Network.SLCAN
   , runSLCANSerialPort
   ) where
 
-import Control.Monad (void)
 import Control.Monad.Catch (MonadCatch, MonadMask, MonadThrow)
 import Control.Monad.Except (MonadError, throwError)
 import Control.Monad.IO.Class (MonadIO(liftIO))
@@ -19,14 +19,16 @@ import Control.Monad.Trans.Reader (ReaderT, runReaderT)
 import Network.CAN.Monad (CANError(..), MonadCAN(..))
 import Network.SLCAN.Types
   ( SLCANMessage(..)
---  , SLCANControl(..)
---  , SLCANBitrate(..)
+  , SLCANControl(..)
+  , SLCANConfig(..)
   )
 import System.IO (Handle)
 import System.Hardware.Serialport (SerialPortSettings)
 
+import qualified Control.Monad
 import qualified Control.Monad.Catch
 import qualified Data.ByteString
+import qualified Data.ByteString.Char8
 import qualified System.Hardware.Serialport
 import qualified System.IO
 import qualified Network.SLCAN.Builder
@@ -63,22 +65,51 @@ runSLCANT handle =
   . runExceptT
   . _unSLCANT
 
+runSLCANHandle
+  :: ( MonadIO m
+     , MonadMask m
+     )
+  => Handle
+  -> SLCANConfig
+  -> SLCANT m a
+  -> m (Either CANError a)
+runSLCANHandle handle conf act =
+  Control.Monad.Catch.finally
+    (runSLCANT handle (openClose act conf))
+    (liftIO $ System.IO.hClose handle)
+  where
+    openClose origAct SLCANConfig{..} = do
+      sendSLCANControl
+        SLCANControl_Close
+      sendSLCANControl
+        (SLCANControl_Bitrate slCANConfigBitrate)
+      Control.Monad.when
+        slCANConfigResetErrors
+        (sendSLCANControl SLCANControl_ResetErrors)
+      sendSLCANControl
+        (if slCANConfigListenOnly
+         then SLCANControl_ListenOnly
+         else SLCANControl_Open
+        )
+      Control.Monad.Catch.finally
+        origAct
+        (sendSLCAN (SLCANMessage_Control SLCANControl_Close))
+
 runSLCANFilePath
   :: ( MonadIO m
      , MonadMask m
      )
   => FilePath
+  -> SLCANConfig
   -> SLCANT m a
   -> m (Either CANError a)
-runSLCANFilePath fp act = do
-  Control.Monad.Catch.bracket
-    (liftIO
-     $ System.IO.openFile
-         fp
-         System.IO.ReadWriteMode
-    )
-    (liftIO . System.IO.hClose)
-    (\handle -> runSLCANT handle act)
+runSLCANFilePath fp conf act = do
+  h <-
+    liftIO
+    $ System.IO.openFile
+        fp
+        System.IO.ReadWriteMode
+  runSLCANHandle h conf act
 
 runSLCANSerialPort
   :: ( MonadIO m
@@ -86,36 +117,47 @@ runSLCANSerialPort
      )
   => FilePath
   -> SerialPortSettings
+  -> SLCANConfig
   -> SLCANT m a
   -> m (Either CANError a)
-runSLCANSerialPort fp settings act = do
-  Control.Monad.Catch.bracket
-    (liftIO
+runSLCANSerialPort fp sportSettings conf act = do
+  h <-
+     liftIO
      $ System.Hardware.Serialport.hOpenSerial
          fp
-         settings
-    )
-    (liftIO . System.IO.hClose)
-    (\handle -> runSLCANT handle act)
+         sportSettings
+
+  runSLCANHandle h conf act
+
+sendSLCAN
+  :: ( MonadIO m
+     , MonadReader Handle m
+     )
+  => SLCANMessage
+  -> m ()
+sendSLCAN msg = do
+  handle <- ask
+  Control.Monad.void
+    $ liftIO
+    $ Data.ByteString.hPutStr
+        handle
+        $ Network.SLCAN.Builder.buildSLCANMessage
+            msg
+
+sendSLCANControl
+  :: ( MonadIO m
+     , MonadReader Handle m
+     )
+  => SLCANControl
+  -> m ()
+sendSLCANControl = sendSLCAN . SLCANMessage_Control
 
 instance MonadIO m => MonadCAN (SLCANT m) where
-  send cm = do
-    handle <- ask
-    void
-      $ liftIO
-      $ Data.ByteString.hPutStr
-          handle
-          (Network.SLCAN.Builder.buildSLCANMessage
-             $ SLCANMessage_Data cm
-          )
+  send = sendSLCAN . SLCANMessage_Data
 
   recv = do
     handle <- ask
-    raw <-
-      liftIO
-      $ Data.ByteString.hGet
-          handle
-          1024
+    raw <- hGetTillCR handle
 
     case Network.SLCAN.Parser.parseSLCANMessage raw of
       Left e -> throwError $ CANError_SLCANParseError e
@@ -125,3 +167,14 @@ instance MonadIO m => MonadCAN (SLCANT m) where
       -- we should do something about the errors
       -- or i.e. Passive/BusOff state
       Right _ -> recv
+
+    where
+      hGetTillCR handle = do
+        msg <-
+          liftIO
+          $ Data.ByteString.hGetSome
+              handle
+              1024
+        if Data.ByteString.Char8.last msg == '\r'
+        then pure msg
+        else hGetTillCR handle >>= pure . (msg <>)

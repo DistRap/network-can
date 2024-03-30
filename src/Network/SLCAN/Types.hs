@@ -5,6 +5,7 @@ module Network.SLCAN.Types
   , SLCANState(..)
   , SLCANCounters(..)
   , SLCANError(..)
+  , SLCANConfig(..)
   ) where
 
 import Data.Default.Class (Default(def))
@@ -64,3 +65,17 @@ data SLCANError
   | SLCANError_TxOverrun
   | SLCANError_Stuff
   deriving (Eq, Ord, Show)
+
+data SLCANConfig = SLCANConfig
+  { slCANConfigBitrate :: SLCANBitrate
+  , slCANConfigResetErrors :: Bool
+  , slCANConfigListenOnly :: Bool
+  } deriving (Eq, Ord, Show)
+
+instance Default SLCANConfig where
+  def =
+    SLCANConfig
+    { slCANConfigBitrate = def
+    , slCANConfigResetErrors = False
+    , slCANConfigListenOnly = False
+    }
