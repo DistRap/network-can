@@ -58,5 +58,5 @@ recv canSock =
         @SockAddrCAN
         canSock
         (ptr :: Ptr SocketCANFrame)
-        (Foreign.Storable.sizeOf ptr)
+        (Foreign.Storable.sizeOf (undefined :: SocketCANFrame))
     Foreign.Storable.peek ptr >>= pure
