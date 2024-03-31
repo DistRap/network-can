@@ -43,6 +43,7 @@ library
                        exceptions,
                        mtl,
                        network >= 3.1,
+                       QuickCheck,
                        serialport >= 0.5,
                        transformers
 

@@ -11,6 +11,9 @@ module Network.CAN.Types
   ) where
 
 import Data.Word (Word8, Word16, Word32)
+import Test.QuickCheck (Arbitrary(..))
+
+import qualified Test.QuickCheck
 
 -- * Arbitration
 
@@ -19,6 +22,21 @@ data CANArbitrationField = CANArbitrationField
   , canArbitrationFieldExtended :: Bool -- ^ Extended CAN ID
   , canArbitrationFieldRTR :: Bool -- ^ Remote transmission request
   } deriving (Eq, Ord, Show)
+
+instance Arbitrary CANArbitrationField where
+  arbitrary = do
+    rtr <- arbitrary
+    ext <- arbitrary
+    cid <-
+      if ext
+      then Test.QuickCheck.choose (0, 0x3FFFFFFF)
+      else Test.QuickCheck.choose (0, 0xFFF)
+    pure
+      CANArbitrationField
+      { canArbitrationFieldID = cid
+      , canArbitrationFieldExtended = ext
+      , canArbitrationFieldRTR = rtr
+      }
 
 -- | Construct standard CAN ID (11 bits)
 standardID
@@ -50,6 +68,17 @@ data CANMessage = CANMessage
   { canMessageArbitrationField :: CANArbitrationField
   , canMessageData :: [Word8]
   } deriving (Eq, Ord, Show)
+
+instance Arbitrary CANMessage where
+  arbitrary = do
+    arb <- arbitrary
+    len <- Test.QuickCheck.choose (0, 8)
+    dat <- Test.QuickCheck.vectorOf len arbitrary
+    pure
+      CANMessage
+      { canMessageArbitrationField = arb
+      , canMessageData = dat
+      }
 
 -- | Create standard CAN message
 standardMessage

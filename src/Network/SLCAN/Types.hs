@@ -12,6 +12,9 @@ import Data.Default.Class (Default(def))
 import Data.Set (Set)
 import Data.Word (Word16)
 import Network.CAN.Types (CANMessage)
+import Test.QuickCheck (Arbitrary(..))
+
+import qualified Test.QuickCheck
 
 data SLCANMessage
   = SLCANMessage_Control SLCANControl
@@ -20,6 +23,14 @@ data SLCANMessage
   | SLCANMessage_Error (Set SLCANError)
   deriving (Eq, Ord, Show)
 
+instance Arbitrary SLCANMessage where
+  arbitrary = Test.QuickCheck.oneof
+    [ SLCANMessage_Control <$> arbitrary
+    , SLCANMessage_Data <$> arbitrary
+    , SLCANMessage_State <$> arbitrary <*> arbitrary
+    , SLCANMessage_Error <$> arbitrary
+    ]
+
 data SLCANControl
   = SLCANControl_Open
   | SLCANControl_Close
@@ -27,6 +38,15 @@ data SLCANControl
   | SLCANControl_ResetErrors
   | SLCANControl_ListenOnly
   deriving (Eq, Ord, Show)
+
+instance Arbitrary SLCANControl where
+  arbitrary = Test.QuickCheck.oneof
+    [ pure SLCANControl_Open
+    , pure SLCANControl_Close
+    , SLCANControl_Bitrate <$> arbitrary
+    , pure SLCANControl_ResetErrors
+    , pure SLCANControl_ListenOnly
+    ]
 
 data SLCANBitrate
   = SLCANBitrate_10K
@@ -40,6 +60,9 @@ data SLCANBitrate
   | SLCANBitrate_1M
   deriving (Bounded, Eq, Enum, Ord, Show)
 
+instance Arbitrary SLCANBitrate where
+  arbitrary = Test.QuickCheck.arbitraryBoundedEnum
+
 instance Default SLCANBitrate where
   def = SLCANBitrate_1M
 
@@ -48,12 +71,21 @@ data SLCANState
   | SLCANState_Warning
   | SLCANState_Passive
   | SLCANState_BusOff
-  deriving (Eq, Ord, Show)
+  deriving (Bounded, Eq, Enum, Ord, Show)
+
+instance Arbitrary SLCANState where
+  arbitrary = Test.QuickCheck.arbitraryBoundedEnum
 
 data SLCANCounters = SLCANCounters
   { slCANCountersRxErrors :: Word16
   , slCANCountersTxErrors :: Word16
   } deriving (Eq, Ord, Show)
+
+instance Arbitrary SLCANCounters where
+  arbitrary =
+    SLCANCounters
+      <$> Test.QuickCheck.choose (0, 999)
+      <*> Test.QuickCheck.choose (0, 999)
 
 data SLCANError
   = SLCANError_Ack
@@ -64,7 +96,10 @@ data SLCANError
   | SLCANError_RxOverrun
   | SLCANError_TxOverrun
   | SLCANError_Stuff
-  deriving (Eq, Ord, Show)
+  deriving (Bounded, Eq, Enum, Ord, Show)
+
+instance Arbitrary SLCANError where
+  arbitrary = Test.QuickCheck.arbitraryBoundedEnum
 
 data SLCANConfig = SLCANConfig
   { slCANConfigBitrate :: SLCANBitrate
