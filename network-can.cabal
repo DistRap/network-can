@@ -64,6 +64,14 @@ test-suite pure
                      , network-can
   default-language:    Haskell2010
 
+executable hcandump
+  build-depends:       base >=4.7 && <5
+                     , network-can
+  default-language:    Haskell2010
+  main-is:             HCANDump.hs
+  hs-source-dirs:      app
+  ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
+
 source-repository head
   type:     git
   location: https://github.com/DistRap/network-can-core
