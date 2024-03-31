@@ -26,3 +26,11 @@ ethtool --set-priv-flags can0 err-rst-on-open on
 https://www.kernel.org/doc/html/latest/networking/can.html
 ## SLCAN docs
 http://www.can232.com/docs/can232_v3.pdf
+
+# TODO
+** test
+unshare -rn
+$ echo $$
+2471015
+ip link add netns 2471015 dev vcan0 type vcan
+

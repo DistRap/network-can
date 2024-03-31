@@ -33,7 +33,9 @@ tst = do
 
 tstCO :: IO (Either CANError ())
 tstCO = do
-  runSLCANFilePath "/dev/ttyS0" def $ do
+  -- socat -d -d pty,link=/tmp/ttyV0,raw,echo=0 pty,link=/tmp/ttyV1,raw,echo=0
+  -- ./build/canopen-posix-test/tower_init <> /tmp/ttyV1  > /tmp/ttyV1
+  runSLCANFilePath "/tmp/ttyV0" def $ do
     send
       $ Network.CAN.standardMessage
           0x7E5

@@ -143,6 +143,8 @@ sendSLCAN msg = do
         handle
         $ Network.SLCAN.Builder.buildSLCANMessage
             msg
+  liftIO
+    $ System.IO.hFlush handle
 
 sendSLCANControl
   :: ( MonadIO m
