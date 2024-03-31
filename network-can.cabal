@@ -61,6 +61,7 @@ test-suite pure
   build-tool-depends:  hspec-discover:hspec-discover
   build-depends:       base >= 4.7 && < 5
                      , hspec
+                     , hspec
                      , network-can
   default-language:    Haskell2010
 

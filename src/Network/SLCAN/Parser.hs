@@ -167,7 +167,7 @@ slCANErrorParser = do
         'c' -> pure SLCANError_CRC
         'f' -> pure SLCANError_Form
         'o' -> pure SLCANError_RxOverrun
-        'O' -> pure SLCANError_RxOverrun
+        'O' -> pure SLCANError_TxOverrun
         's' -> pure SLCANError_Stuff
         c   -> fail $ "Unknown error char: " <> show c
 

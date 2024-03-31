@@ -57,7 +57,7 @@ slCANDataBuilder CANMessage{..} =
       (fromIntegral $ length canMessageData)
   <> mconcat
       (map
-         Data.ByteString.Builder.word8Hex
+         Data.ByteString.Builder.word8HexFixed
          canMessageData
       )
 
@@ -106,8 +106,8 @@ slCANStateBuilder state SLCANCounters{..} =
     -- encode as 3 bytes (maximum of 999 and zero padded)
     word16Dec3 x =
            (case x of
-              _ | x <= 10 -> Data.ByteString.Builder.string7 "00"
-              _ | x <= 100 -> Data.ByteString.Builder.char7 '0'
+              _ | x < 10 -> Data.ByteString.Builder.string7 "00"
+              _ | x < 100 -> Data.ByteString.Builder.char7 '0'
               _ | otherwise -> mempty
            )
         <> Data.ByteString.Builder.word16Dec
