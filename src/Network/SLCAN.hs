@@ -7,14 +7,11 @@ module Network.SLCAN
   , sendSLCANControl
   , recvSLCANMessage
   , sendCANMessage
+  , module Network.SLCAN.Types
   ) where
 
 import Network.CAN.Types (CANMessage)
 import Network.SLCAN.Types
-  ( SLCANMessage(..)
-  , SLCANControl(..)
-  , SLCANConfig(..)
-  )
 import System.IO (Handle)
 
 import qualified Control.Monad
@@ -49,38 +46,6 @@ withSLCANHandle handle SLCANConfig{..} act = do
          (send SLCANControl_Close)
     )
     (System.IO.hClose handle)
-
-{--
-runSLCANFilePath
-  :: ( MonadIO m
-     , MonadMask m
-     )
-  => FilePath
-  -> SLCANConfig
-  -> SLCANT m a
-  -> m (Either CANError a)
-runSLCANFilePath fp conf act = do
-  h <-
-    liftIO
-    $ System.IO.openFile
-        fp
-        System.IO.ReadWriteMode
-  runSLCANHandle h conf act
-
-runSLCANSerialPort
-  :: ( MonadIO m
-     , MonadMask m
-     )
-  => FilePath
-  -> SerialPortSettings
-  -> SLCANConfig
-  -> SLCANT m a
-  -> m (Either CANError a)
-runSLCANSerialPort fp sportSettings conf act = do
-  h <-
-     liftIO
-  runSLCANHandle h conf act
---}
 
 sendSLCANMessage
   :: Handle

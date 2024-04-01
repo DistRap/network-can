@@ -14,16 +14,17 @@ main = do
   let
     port = "/dev/can4discouart"
 
-  System.Hardware.Serialport.hWithSerial
-    port
-    (System.Hardware.Serialport.defaultSerialSettings
-      { commSpeed = CS115200 }
-    )
-    $ \h ->
-        Network.SLCAN.withSLCANHandle
-          h
-          def
-          act
+  h <-
+    System.Hardware.Serialport.hOpenSerial
+      port
+      (System.Hardware.Serialport.defaultSerialSettings
+        { commSpeed = CS115200 }
+      )
+
+  Network.SLCAN.withSLCANHandle
+    h
+    def
+    act
 
 act :: Handle -> IO ()
 act handle = do
