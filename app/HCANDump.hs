@@ -1,15 +1,22 @@
 module Main where
 
-import Control.Monad (forever, void)
-import Control.Monad.IO.Class (MonadIO(liftIO))
-import Network.CAN
-import Network.SLCAN
-import Network.SocketCAN
+import qualified Control.Monad
+import qualified Network.SocketCAN
 
-main :: IO () -- Either CANError ())
+main :: IO ()
 main = do
-  void $ runSocketCAN "vcan0" $ do
-    forever $ recv >>= liftIO . print
+  let interface = "vcan0"
+  mIdx <- Network.SocketCAN.ifNameToIndex interface
+  case mIdx of
+    Nothing -> error $ "Interface " <> interface <> " not found"
+    Just idx ->
+      Network.SocketCAN.withSocketCAN
+        idx
+        (\sock ->
+          Control.Monad.forever
+            $ Network.SocketCAN.recvCANMessage sock
+              >>= print
+        )
 
 -- needs Network.CAN.Pretty or Builder or smthing
 -- that does the same ID formatting as SLCAN.Builder:78
