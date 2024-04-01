@@ -30,10 +30,10 @@ library
                        Network.SLCAN.Types
                        Network.SocketCAN
                        Network.SocketCAN.Bindings
+                       Network.SocketCAN.Example
                        Network.SocketCAN.LowLevel
                        Network.SocketCAN.Translate
 
-                       Network.CAN.Test
   build-depends:       base >= 4.7 && < 5
                      , attoparsec >= 0.14
                      , bytestring

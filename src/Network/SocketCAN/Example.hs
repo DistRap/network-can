@@ -1,4 +1,4 @@
-module Network.CAN.Test where
+module Network.SocketCAN.Example where
 
 import Control.Monad (forever)
 import Network.CAN
@@ -20,7 +20,7 @@ act :: Socket -> IO ()
 act sock = do
   sendCANMessage
     sock
-    $ Network.CAN.standardMessage
+    $ standardMessage
         0x123
         [0xDE, 0xAD]
 
