@@ -63,7 +63,7 @@ executable hcandump
   build-depends:       base >=4.7 && <5
                      , network-can
   default-language:    Haskell2010
-  main-is:             HCANDump.hs
+  main-is:             CANDump.hs
   hs-source-dirs:      app
   ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
 
@@ -73,7 +73,7 @@ executable hcanbridge
                      , data-default-class
                      , stm
   default-language:    Haskell2010
-  main-is:             HCANBridge.hs
+  main-is:             CANBridge.hs
   hs-source-dirs:      app
   ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
 
