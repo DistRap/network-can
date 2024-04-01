@@ -9,8 +9,10 @@ import Network.CAN
 import Network.SLCAN
 import Network.SocketCAN
 
-main :: IO () -- Either CANError ())
+main :: IO ()
 main = do
+  -- newTQueue aToB
+  -- newTQueue bToA
   void $ runSLCANFilePath "/tmp/ttyV1" def $ do
      void $ runSocketCAN "vcan0" $ do
         (forever $ lift recv >>= send)

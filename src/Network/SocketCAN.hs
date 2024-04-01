@@ -13,6 +13,7 @@ import Control.Monad.Trans (MonadTrans, lift)
 import Control.Monad.Trans.Except (ExceptT, runExceptT)
 import Control.Monad.Trans.Reader (ReaderT, runReaderT)
 
+import Network.CAN (CANMessage)
 import Network.CAN.Monad (CANError(..), MonadCAN(..))
 import Network.Socket (Socket)
 import Network.SocketCAN.Bindings (SockAddrCAN(..))
@@ -84,15 +85,26 @@ runSocketCAN interface act = do
           runSocketCANT canSock act
         )
 
+sendCANMessage
+  :: Socket
+  -> CANMessage
+  -> IO ()
+sendCANMessage canSock cm =
+  Network.SocketCAN.LowLevel.send
+    canSock
+    (Network.SocketCAN.Translate.toSocketCANFrame cm)
+
+recvCANMessage
+  :: Socket
+  -> IO CANMessage
+recvCANMessage canSock =
+  Network.SocketCAN.LowLevel.recv canSock
+  >>= pure . Network.SocketCAN.Translate.fromSocketCANFrame
+
 instance MonadIO m => MonadCAN (SocketCANT m) where
   send cm = do
     canSock <- ask
-    liftIO
-      $ Network.SocketCAN.LowLevel.send
-          canSock
-          (Network.SocketCAN.Translate.toSocketCANFrame cm)
+    liftIO $ sendCANMessage canSock cm
   recv = do
     canSock <- ask
-    liftIO
-      $ Network.SocketCAN.LowLevel.recv canSock
-      >>= pure . Network.SocketCAN.Translate.fromSocketCANFrame
+    liftIO $ recvCANMessage canSock

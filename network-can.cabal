@@ -35,17 +35,17 @@ library
                        Network.SocketCAN.Translate
 
                        Network.CAN.Test
-  build-depends:       base >= 4.7 && < 5,
-                       attoparsec >= 0.14,
-                       bytestring,
-                       containers,
-                       data-default-class,
-                       exceptions,
-                       mtl,
-                       network >= 3.1,
-                       QuickCheck,
-                       serialport >= 0.5,
-                       transformers
+  build-depends:       base >= 4.7 && < 5
+                     , attoparsec >= 0.14
+                     , bytestring
+                     , containers
+                     , data-default-class
+                     , exceptions
+                     , mtl
+                     , network >= 3.1
+                     , QuickCheck
+                     , serialport >= 0.5.5
+                     , transformers
 
   build-tool-depends:  hsc2hs:hsc2hs
   default-language:    Haskell2010
@@ -69,6 +69,17 @@ executable hcandump
                      , network-can
   default-language:    Haskell2010
   main-is:             HCANDump.hs
+  hs-source-dirs:      app
+  ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
+
+executable hcanbridge
+  build-depends:       base >=4.7 && <5
+                     , concurrency
+                     , data-default-class
+                     , mtl
+                     , network-can
+  default-language:    Haskell2010
+  main-is:             HCANBridge.hs
   hs-source-dirs:      app
   ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
 
