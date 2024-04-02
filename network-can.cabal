@@ -87,8 +87,6 @@ executable hslcanserial
   hs-source-dirs:      app
   ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
 
-
-
 source-repository head
   type:     git
-  location: https://github.com/DistRap/network-can-core
+  location: https://github.com/DistRap/network-can
