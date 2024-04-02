@@ -1,3 +1,13 @@
+# WHAT TO DO WITH DIS
+
+maybe we should have
++ network-socketcan
++ network-slcan
++ network-can
+instead, when we figure out a better common interface
+cause primitive send/recv is not enuf, threads/callbacks are needed
+> can_rx_register
+> https://elixir.bootlin.com/linux/latest/source/net/can/af_can.c#L410
 
 # socat bridge
 # as root
