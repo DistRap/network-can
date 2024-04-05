@@ -51,6 +51,7 @@ toSocketCANArbitrationField CANArbitrationField{..} =
       (.|. rtrBit)
       canArbitrationFieldRTR
   $ canArbitrationFieldID
+
 fromSocketCANArbitrationField
   :: SocketCANArbitrationField
   -> CANArbitrationField
