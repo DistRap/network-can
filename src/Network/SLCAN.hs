@@ -1,5 +1,6 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 module Network.SLCAN
   ( withSLCANHandle
@@ -8,11 +9,19 @@ module Network.SLCAN
   , recvSLCANMessage
   , sendCANMessage
   , module Network.SLCAN.Types
+  , runSLCAN
   ) where
 
-import Network.CAN.Types (CANMessage)
+import Control.Exception (Exception)
+import Control.Monad.IO.Class (MonadIO(..))
+import Control.Monad.Reader (MonadReader, ask)
+import Control.Monad.Trans (MonadTrans(..))
+import Control.Monad.Trans.Reader (ReaderT(..))
+
+import Network.CAN (CANMessage, MonadCAN(..))
 import Network.SLCAN.Types
 import System.IO (Handle)
+import UnliftIO (MonadUnliftIO)
 
 import qualified Control.Monad
 import qualified Control.Exception
@@ -21,6 +30,7 @@ import qualified Data.ByteString.Char8
 import qualified System.IO
 import qualified Network.SLCAN.Builder
 import qualified Network.SLCAN.Parser
+import qualified UnliftIO
 
 withSLCANHandle
   :: Handle
@@ -28,24 +38,23 @@ withSLCANHandle
   -> (Handle -> IO a)
   -> IO a
 withSLCANHandle handle SLCANConfig{..} act = do
-  let send = sendSLCANControl handle
+  let sendC = sendSLCANControl handle
   Control.Exception.finally
     (do
-       send SLCANControl_Close
-       send (SLCANControl_Bitrate slCANConfigBitrate)
+       sendC SLCANControl_Close
+       sendC (SLCANControl_Bitrate slCANConfigBitrate)
        Control.Monad.when
          slCANConfigResetErrors
-         (send SLCANControl_ResetErrors)
-       send
+         (sendC SLCANControl_ResetErrors)
+       sendC
          (if slCANConfigListenOnly
           then SLCANControl_ListenOnly
           else SLCANControl_Open
          )
-       Control.Exception.finally
-         (act handle)
-         (send SLCANControl_Close)
+
+       act handle
     )
-    (System.IO.hClose handle)
+    (sendC SLCANControl_Close)
 
 sendSLCANMessage
   :: Handle
@@ -91,3 +100,68 @@ sendCANMessage
 sendCANMessage h =
   sendSLCANMessage h
   . SLCANMessage_Data
+
+newtype SLCANT m a = SLCANT
+  { _unSLCANT :: ReaderT Handle m a }
+  deriving
+    ( Functor
+    , Applicative
+    , Monad
+    , MonadReader Handle
+    , MonadIO
+    , MonadUnliftIO
+    )
+
+instance MonadTrans SLCANT where
+  lift = SLCANT . lift
+
+-- | Run SLCANT transformer
+runSLCANT
+  :: Monad m
+  => Handle
+  -> SLCANT m a
+  -> m a
+runSLCANT sock =
+    (`runReaderT` sock)
+  . _unSLCANT
+
+data SLCANException = SLCANException_ParseError String
+    deriving Show
+
+instance Exception SLCANException
+
+runSLCAN
+  :: ( MonadIO m
+     , MonadUnliftIO m
+     )
+  => Handle
+  -> SLCANConfig
+  -> SLCANT m a
+  -> m a
+runSLCAN handle config act = do
+  UnliftIO.withRunInIO $ \runInIO ->
+    withSLCANHandle
+      handle
+      config
+      (\h -> runInIO (runSLCANT h act))
+
+instance MonadIO m => MonadCAN (SLCANT m) where
+  send cm = do
+    canSock <- ask
+    liftIO $ sendCANMessage canSock cm
+  recv = do
+    canSock <- ask
+    liftIO
+      (recvSLCANMessage canSock)
+    >>= \case
+      Left e ->
+        UnliftIO.throwIO $ SLCANException_ParseError e
+      Right (SLCANMessage_Data cm) ->
+        pure cm
+      Right _other ->
+        -- TODO: do something with
+        -- SLCANMessage_Error
+        -- and SLCANMessage_State
+        -- like allow registering handlers for these
+        -- or throwIO on _Error one
+        recv
