@@ -4,6 +4,7 @@ module Network.SocketCAN
   , sendCANMessage
   , recvCANMessage
   , Network.Socket.ifNameToIndex
+  , SocketCANT
   , runSocketCAN
   ) where
 
