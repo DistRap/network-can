@@ -9,6 +9,7 @@ module Network.SLCAN
   , recvSLCANMessage
   , sendCANMessage
   , module Network.SLCAN.Types
+  , SLCANT(..)
   , runSLCAN
   ) where
 
