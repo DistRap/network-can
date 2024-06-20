@@ -31,8 +31,9 @@ act handle = do
   Network.SLCAN.sendCANMessage
     handle
     $ Network.CAN.standardMessage
-        0x7E5
-        [0x4C]
+        -- vendorID SDO
+        0x601
+        [0x40, 0x18, 0x10, 0x01, 0x0, 0x0, 0x0, 0x0]
 
   Control.Monad.forever
     $ Network.SLCAN.recvSLCANMessage handle
