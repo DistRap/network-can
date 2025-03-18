@@ -2,7 +2,6 @@
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/DistRap/network-can/ci.yaml?branch=main)](https://github.com/DistRap/network-can/actions/workflows/ci.yaml)
 [![Hackage version](https://img.shields.io/hackage/v/network-can.svg?color=success)](https://hackage.haskell.org/package/network-can)
-[![Dependencies](https://img.shields.io/hackage-deps/v/network-can?label=Dependencies)](https://packdeps.haskellers.com/feed?needle=network-can)
 
 CAN bus networking using Linux SocketCAN or SLCAN backends.
 
