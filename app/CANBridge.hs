@@ -3,7 +3,11 @@ module Main where
 
 import Control.Monad.Trans (MonadTrans(lift))
 import Data.Default.Class (Default(def))
+<<<<<<< HEAD
 import System.Hardware.Serialport (CommSpeed(..), SerialPortSettings(..))
+=======
+import Network.SLCAN (Transport(..))
+>>>>>>> 759c2cd (Abstract Transport for SLCAN allowing UDP transport as well)
 
 import qualified Control.Monad
 import qualified Network.CAN
@@ -21,17 +25,13 @@ import qualified UnliftIO.Async
 -- ./build/canopen-posix-test/tower_init <> /tmp/ttyV1  > /tmp/ttyV1
 main :: IO ()
 main = do
-  h <- System.Hardware.Serialport.hOpenSerial
-    "/dev/can4discouart"
-    (System.Hardware.Serialport.defaultSerialSettings
-      { commSpeed = CS115200 }
-    )
-  Network.SLCAN.runSLCAN h def $ do
-    Network.SocketCAN.runSocketCAN "vcan0" $ do
-        UnliftIO.Async.race_
-          (Control.Monad.forever
-           $ Network.CAN.recv >>= lift . Network.CAN.send
-          )
-          (Control.Monad.forever
-           $ lift Network.CAN.recv >>= Network.CAN.send
-          )
+  System.IO.withFile "/tmp/ttyV0" System.IO.ReadWriteMode $ \h ->
+    Network.SLCAN.runSLCAN (Transport_Handle h) def $ do
+      Network.SocketCAN.runSocketCAN "vcan0" $ do
+          UnliftIO.Async.race_
+            (Control.Monad.forever
+             $ Network.CAN.recv >>= lift . Network.CAN.send
+            )
+            (Control.Monad.forever
+             $ lift Network.CAN.recv >>= Network.CAN.send
+            )

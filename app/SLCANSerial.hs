@@ -1,8 +1,10 @@
 module Main where
 
+import Control.Monad.IO.Class
 import Data.Default.Class (Default(def))
-import System.IO (Handle)
 import System.Hardware.Serialport (CommSpeed(..), SerialPortSettings(..))
+import Network.CAN (MonadCAN)
+import Network.SLCAN (Transport(..))
 
 import qualified Control.Monad
 import qualified Network.CAN
@@ -21,20 +23,23 @@ main = do
         { commSpeed = CS115200 }
       )
 
-  Network.SLCAN.withSLCANHandle
-    h
+  Network.SLCAN.runSLCAN
+    (Transport_Handle h)
     def
     act
 
-act :: Handle -> IO ()
-act handle = do
-  Network.SLCAN.sendCANMessage
-    handle
+act
+  :: ( MonadCAN m
+     , MonadIO m
+     )
+  => m ()
+act = do
+  Network.CAN.send
     $ Network.CAN.standardMessage
         -- vendorID SDO
         0x601
         [0x40, 0x18, 0x10, 0x01, 0x0, 0x0, 0x0, 0x0]
 
   Control.Monad.forever
-    $ Network.SLCAN.recvSLCANMessage handle
-    >>= print
+    $ Network.CAN.recv
+      >>= Control.Monad.IO.Class.liftIO . print
