@@ -1,7 +1,9 @@
+{-# LANGUAGE NumericUnderscores #-}
 module Network.SLCAN.Types
   ( SLCANMessage(..)
   , SLCANControl(..)
   , SLCANBitrate(..)
+  , numericBitrate
   , SLCANState(..)
   , SLCANCounters(..)
   , SLCANError(..)
@@ -65,6 +67,17 @@ instance Arbitrary SLCANBitrate where
 
 instance Default SLCANBitrate where
   def = SLCANBitrate_1M
+
+numericBitrate :: SLCANBitrate -> Int
+numericBitrate SLCANBitrate_10K  =    10_000
+numericBitrate SLCANBitrate_20K  =    20_000
+numericBitrate SLCANBitrate_50K  =    50_000
+numericBitrate SLCANBitrate_100K =   100_000
+numericBitrate SLCANBitrate_125K =   125_000
+numericBitrate SLCANBitrate_250K =   250_000
+numericBitrate SLCANBitrate_500K =   500_000
+numericBitrate SLCANBitrate_800K =   800_000
+numericBitrate SLCANBitrate_1M   = 1_000_000
 
 data SLCANState
   = SLCANState_Active
