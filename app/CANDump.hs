@@ -7,8 +7,8 @@ import qualified Network.SocketCAN
 
 main :: IO ()
 main = do
-  let interface = "vcan0"
-  Network.SocketCAN.runSocketCAN interface
+  Network.SocketCAN.runSocketCAN
+    (Network.SocketCAN.mkCANInterface "vcan0")
     (Control.Monad.forever
        $ Network.CAN.recv
          >>= Control.Monad.IO.Class.liftIO . print

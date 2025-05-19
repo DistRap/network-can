@@ -11,6 +11,7 @@ module Network.SLCAN
   , sendCANMessage
   , module Network.SLCAN.Types
   , SLCANT(..)
+  , SLCANException(..)
   , runSLCAN
   ) where
 

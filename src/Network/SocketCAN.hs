@@ -5,6 +5,9 @@ module Network.SocketCAN
   , recvCANMessage
   , Network.Socket.ifNameToIndex
   , SocketCANT
+  , CANInterface
+  , mkCANInterface
+  , NoSuchInterface(..)
   , runSocketCAN
   ) where
 
@@ -78,6 +81,16 @@ runSocketCANT sock =
     (`runReaderT` sock)
   . _unSocketCANT
 
+newtype CANInterface = CANInterface
+  { unCANInterface :: String }
+  deriving Eq
+
+instance Show CANInterface where
+  show = unCANInterface
+
+mkCANInterface :: String -> CANInterface
+mkCANInterface = CANInterface
+
 data NoSuchInterface = NoSuchInterface
     deriving Show
 
@@ -87,13 +100,13 @@ runSocketCAN
   :: ( MonadIO m
      , MonadUnliftIO m
      )
-  => String
+  => CANInterface
   -> SocketCANT m a
   -> m a
 runSocketCAN interface act = do
   mIdx <-
     liftIO
-    $ Network.Socket.ifNameToIndex interface
+    $ Network.Socket.ifNameToIndex (unCANInterface interface)
 
   case mIdx of
     Nothing -> throwIO NoSuchInterface

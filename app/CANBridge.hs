@@ -27,7 +27,7 @@ main :: IO ()
 main = do
   System.IO.withFile "/tmp/ttyV0" System.IO.ReadWriteMode $ \h ->
     Network.SLCAN.runSLCAN (Transport_Handle h) def $ do
-      Network.SocketCAN.runSocketCAN "vcan0" $ do
+      Network.SocketCAN.runSocketCAN (Network.SocketCAN.mkCANInterface "vcan0") $ do
           UnliftIO.Async.race_
             (Control.Monad.forever
              $ Network.CAN.recv >>= lift . Network.CAN.send
