@@ -94,6 +94,16 @@ executable hslcanserial
   hs-source-dirs:      app
   ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
 
+executable hslcanudp
+  build-depends:       base >=4.7 && <5
+                     , network
+                     , network-can
+                     , data-default-class
+  default-language:    Haskell2010
+  main-is:             SLCANUDP.hs
+  hs-source-dirs:      app
+  ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
+
 source-repository head
   type:     git
   location: https://github.com/DistRap/network-can
