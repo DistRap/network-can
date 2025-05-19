@@ -9,28 +9,21 @@ CAN bus networking using Linux SocketCAN or SLCAN backends.
 
 ```haskell
 import qualified Control.Monad
+import qualified Control.Monad.IO.Class
 import qualified Network.CAN
 import qualified Network.SocketCAN
 
 main :: IO ()
 main = do
-  let interface = "vcan0"
-  mIdx <- Network.SocketCAN.ifNameToIndex interface
-  case mIdx of
-    Nothing -> error $ "Interface " <> interface <> " not found"
-    Just idx ->
-      Network.SocketCAN.withSocketCAN
-        idx
-        (\sock -> do
+  Network.SocketCAN.runSocketCAN
+    (Network.SocketCAN.mkCANInterface "vcan0")
+    $ do
+        Network.CAN.send
+          $ Network.CAN.standardMessage
+              0x123
+              [0xDE, 0xAD]
 
-          Network.SocketCAN.sendCANMessage
-            sock
-            $ Network.CAN.standardMessage
-                0x123
-                [0xDE, 0xAD]
-
-          Control.Monad.forever
-            $ Network.SocketCAN.recvCANMessage sock
-              >>= print
-        )
+        Control.Monad.forever
+          $ Network.CAN.recv
+            >>= Control.Monad.IO.Class.liftIO . print
 ```
