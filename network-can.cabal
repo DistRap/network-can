@@ -19,6 +19,12 @@ extra-source-files:
 extra-doc-files:
     CHANGELOG.md
 
+flag build-apps
+  default:
+    False
+  description:
+    Build example applications
+
 library
   ghc-options:         -Wall
   hs-source-dirs:      src
@@ -64,6 +70,8 @@ test-suite pure
   default-language:    Haskell2010
 
 executable hcandump
+  if !flag(build-apps)
+    buildable: False
   build-depends:       base >=4.7 && <5
                      , network-can
   default-language:    Haskell2010
@@ -72,19 +80,22 @@ executable hcandump
   ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
 
 executable hcanbridge
+  if !flag(build-apps)
+    buildable: False
   build-depends:       base >=4.7 && <5
                      , network-can
                      , data-default-class
                      , mtl
                      , serialport >= 0.5.5
                      , unliftio
-
   default-language:    Haskell2010
   main-is:             CANBridge.hs
   hs-source-dirs:      app
   ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
 
 executable hslcanserial
+  if !flag(build-apps)
+    buildable: False
   build-depends:       base >=4.7 && <5
                      , network-can
                      , data-default-class
@@ -95,6 +106,8 @@ executable hslcanserial
   ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
 
 executable hslcanudp
+  if !flag(build-apps)
+    buildable: False
   build-depends:       base >=4.7 && <5
                      , network
                      , network-can
