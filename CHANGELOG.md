@@ -1,3 +1,17 @@
+# Version [next](https://github.com/DistRap/network-can/compare/0.1.0.0...master) (2026-MM-DD)
+
+* Split `slcan` and `socketcan` into public sublibraries
+* Migrate to `io-classes` and switch from `MonadCAN` typeclass
+  to `CANEndpoint` handle (record of functions style):
+
+  ```
+  data CANEndpoint m = CANEndpoint
+  { canEndpointSend :: CANMessage -> m ()
+  , canEndpointRecv :: m CANMessage
+  }
+  ```
+
+
 # Version [0.1.0.0](https://github.com/DistRap/network-can/compare/d50564...0.1.0.0) (2025-05-19)
 
 * Initial release

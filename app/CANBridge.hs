@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 module Main where
 
-import Control.Monad.Trans (MonadTrans(lift))
+import Control.Monad.Class.MonadAsync (race_)
 import Data.Default.Class (Default(def))
 import Network.SLCAN (Transport(..))
 import System.Hardware.Serialport (CommSpeed(..), SerialPortSettings(..))
@@ -11,7 +11,6 @@ import qualified Network.CAN
 import qualified Network.SocketCAN
 import qualified Network.SLCAN
 import qualified System.Hardware.Serialport
-import qualified UnliftIO.Async
 
 -- | Bridge vcan0 to slcan over /dev/can4discouart serial port
 main :: IO ()
@@ -21,12 +20,12 @@ main = do
     (System.Hardware.Serialport.defaultSerialSettings
       { commSpeed = CS115200 }
     )
-  Network.SLCAN.runSLCAN (Transport_Handle h) def $ do
-    Network.SocketCAN.runSocketCAN (Network.SocketCAN.mkCANInterface "vcan0") $ do
-        UnliftIO.Async.race_
+  Network.SLCAN.runSLCAN (Transport_Handle h) def $ \slcan -> do
+    Network.SocketCAN.runSocketCAN (Network.SocketCAN.mkCANInterface "vcan0") $ \socketcan -> do
+        race_
           (Control.Monad.forever
-           $ Network.CAN.recv >>= lift . Network.CAN.send
+           $ Network.CAN.recv slcan >>= Network.CAN.send socketcan
           )
           (Control.Monad.forever
-           $ lift Network.CAN.recv >>= Network.CAN.send
+           $ Network.CAN.recv socketcan >>= Network.CAN.send slcan
           )

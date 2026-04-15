@@ -1,43 +1,42 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Network.SocketCAN
   ( withSocketCAN
   , sendCANMessage
   , recvCANMessage
   , Network.Socket.ifNameToIndex
-  , SocketCANT
   , CANInterface
   , mkCANInterface
   , NoSuchInterface(..)
   , runSocketCAN
   ) where
 
-import Network.CAN (CANMessage, MonadCAN(..))
+import Network.CAN (CANMessage, CANEndpoint(..))
 import Network.Socket (Socket)
 import Network.SocketCAN.Bindings (SockAddrCAN(..))
 
-import Control.Monad.Reader (MonadReader, ask)
-import Control.Monad.Trans (MonadTrans(..))
-import Control.Monad.Trans.Reader (ReaderT(..))
-import UnliftIO
+import Control.Monad.Class.MonadThrow (Exception(..), MonadThrow(bracket, throwIO))
+import Control.Monad.IO.Class (MonadIO(..))
 
-import qualified Control.Exception
 import qualified Network.Socket (ifNameToIndex)
 import qualified Network.SocketCAN.LowLevel
 import qualified Network.SocketCAN.Translate
 
 withSocketCAN
-  :: Int
-  -> (Socket -> IO a)
-  -> IO a
+  :: ( MonadIO m
+     , MonadThrow m
+     )
+  => Int
+  -> (Socket -> m a)
+  -> m a
 withSocketCAN ifaceIdx act = do
-  Control.Exception.bracket
-    Network.SocketCAN.LowLevel.socket
-    Network.SocketCAN.LowLevel.close
+  bracket
+    (liftIO Network.SocketCAN.LowLevel.socket)
+    (liftIO . Network.SocketCAN.LowLevel.close)
     (\canSock -> do
-      Network.SocketCAN.LowLevel.bind
-        canSock
-        $ Network.SocketCAN.Bindings.SockAddrCAN
-          $ fromIntegral ifaceIdx
+      liftIO
+        $ Network.SocketCAN.LowLevel.bind
+            canSock
+            $ Network.SocketCAN.Bindings.SockAddrCAN
+              $ fromIntegral ifaceIdx
       act canSock
     )
 
@@ -57,30 +56,6 @@ recvCANMessage canSock =
   Network.SocketCAN.LowLevel.recv canSock
   >>= pure . Network.SocketCAN.Translate.fromSocketCANFrame
 
-newtype SocketCANT m a = SocketCANT
-  { _unSocketCANT :: ReaderT Socket m a }
-  deriving
-    ( Functor
-    , Applicative
-    , Monad
-    , MonadReader Socket
-    , MonadIO
-    , MonadUnliftIO
-    )
-
-instance MonadTrans SocketCANT where
-  lift = SocketCANT . lift
-
--- | Run SocketCANT transformer
-runSocketCANT
-  :: Monad m
-  => Socket
-  -> SocketCANT m a
-  -> m a
-runSocketCANT sock =
-    (`runReaderT` sock)
-  . _unSocketCANT
-
 newtype CANInterface = CANInterface
   { unCANInterface :: String }
   deriving Eq
@@ -98,10 +73,10 @@ instance Exception NoSuchInterface
 
 runSocketCAN
   :: ( MonadIO m
-     , MonadUnliftIO m
+     , MonadThrow m
      )
   => CANInterface
-  -> SocketCANT m a
+  -> (CANEndpoint m -> m a)
   -> m a
 runSocketCAN interface act = do
   mIdx <-
@@ -110,13 +85,12 @@ runSocketCAN interface act = do
 
   case mIdx of
     Nothing -> throwIO NoSuchInterface
-    Just idx -> withRunInIO $ \runInIO ->
-      withSocketCAN idx (\s -> runInIO (runSocketCANT s act))
-
-instance MonadIO m => MonadCAN (SocketCANT m) where
-  send cm = do
-    canSock <- ask
-    liftIO $ sendCANMessage canSock cm
-  recv = do
-    canSock <- ask
-    liftIO $ recvCANMessage canSock
+    Just idx ->
+      withSocketCAN
+        idx
+        $ \sock ->
+            act
+              CANEndpoint
+                { canEndpointSend = liftIO . sendCANMessage sock
+                , canEndpointRecv = liftIO $ recvCANMessage sock
+                }

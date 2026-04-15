@@ -2,7 +2,7 @@ module Main where
 
 import Control.Monad.IO.Class
 import Data.Default.Class (Default(def))
-import Network.CAN (MonadCAN)
+import Network.CAN (CANEndpoint)
 import Network.SLCAN (Transport(..))
 import Network.Socket (AddrInfo(..), SocketType(Datagram))
 
@@ -44,16 +44,17 @@ main = do
     (_, _) -> error "getAddrInfo fail"
 
 act
-  :: ( MonadCAN m
-     , MonadIO m
-     )
-  => m ()
-act = do
+  :: MonadIO m
+  => CANEndpoint m
+  -> m ()
+act can = do
   Network.CAN.send
+    can
     $ Network.CAN.standardMessage
         0x7E5
         [0x4C]
 
   Control.Monad.forever
     $ Network.CAN.recv
+        can
       >>= Control.Monad.IO.Class.liftIO . print

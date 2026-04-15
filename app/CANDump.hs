@@ -9,10 +9,11 @@ main :: IO ()
 main = do
   Network.SocketCAN.runSocketCAN
     (Network.SocketCAN.mkCANInterface "vcan0")
-    (Control.Monad.forever
-       $ Network.CAN.recv
-         >>= Control.Monad.IO.Class.liftIO . print
-    )
+    $ \can ->
+      (Control.Monad.forever
+         $ Network.CAN.recv can
+           >>= Control.Monad.IO.Class.liftIO . print
+      )
 
 -- needs Network.CAN.Pretty or Builder or smthing
 -- that does the same ID formatting as SLCAN.Builder:78

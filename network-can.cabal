@@ -38,12 +38,9 @@ library
   import:              commons
   hs-source-dirs:      src
   exposed-modules:     Network.CAN
-                       Network.CAN.Class
                        Network.CAN.Types
   build-depends:       base >= 4.7 && < 5
                      , QuickCheck
-                     , mtl
-                     , transformers
 
 library slcan
   import:              commons
@@ -58,12 +55,10 @@ library slcan
                      , bytestring
                      , containers
                      , data-default-class
-                     , mtl
+                     , io-classes
                      , network >= 3.1
                      , network-can
                      , QuickCheck
-                     , transformers
-                     , unliftio
 
 library socketcan
   import:              commons
@@ -75,11 +70,9 @@ library socketcan
                        Network.SocketCAN.LowLevel
                        Network.SocketCAN.Translate
   build-depends:       base >= 4.7 && < 5
-                     , mtl
+                     , io-classes
                      , network >= 3.1
                      , network-can
-                     , transformers
-                     , unliftio
   build-tool-depends:  hsc2hs:hsc2hs
 
 test-suite pure
@@ -99,9 +92,9 @@ test-suite pure
   default-language:    Haskell2010
 
 executable hcandump
+  import:              commons, execs
   if !flag(build-apps)
     buildable: False
-  import:              commons, execs
   build-depends:       base >=4.7 && <5
                      , network-can
                      , network-can:socketcan
@@ -109,24 +102,23 @@ executable hcandump
   hs-source-dirs:      app
 
 executable hcanbridge
+  import:              commons, execs
   if !flag(build-apps)
     buildable: False
-  import:              commons, execs
   build-depends:       base >=4.7 && <5
                      , network-can
                      , network-can:slcan
                      , network-can:socketcan
                      , data-default-class
-                     , mtl
+                     , io-classes
                      , serialport >= 0.5.5
-                     , unliftio
   main-is:             CANBridge.hs
   hs-source-dirs:      app
 
 executable hslcanserial
+  import:              commons, execs
   if !flag(build-apps)
     buildable: False
-  import:              commons, execs
   build-depends:       base >=4.7 && <5
                      , network-can
                      , network-can:slcan

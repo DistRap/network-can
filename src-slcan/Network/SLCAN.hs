@@ -1,7 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
+
 module Network.SLCAN
   ( Transport(..)
   , withSLCANTransport
@@ -10,45 +9,41 @@ module Network.SLCAN
   , recvSLCANMessage
   , sendCANMessage
   , module Network.SLCAN.Types
-  , SLCANT(..)
   , SLCANException(..)
   , runSLCAN
   ) where
 
-import Control.Exception (Exception)
+import Control.Monad.Class.MonadThrow (Exception(..), MonadThrow(throwIO), finally)
 import Control.Monad.IO.Class (MonadIO(..))
-import Control.Monad.Reader (MonadReader, ask)
-import Control.Monad.Trans (MonadTrans(..))
-import Control.Monad.Trans.Reader (ReaderT(..))
 
 import Network.Socket (Socket, SockAddr)
-import Network.CAN (CANMessage, MonadCAN(..))
+import Network.CAN (CANMessage, CANEndpoint(..))
 import Network.SLCAN.Types
 import System.IO (Handle)
-import UnliftIO (MonadUnliftIO)
 
 import qualified Control.Monad
-import qualified Control.Exception
 import qualified Data.ByteString
 import qualified Data.ByteString.Char8
 import qualified System.IO
 import qualified Network.SLCAN.Builder
 import qualified Network.SLCAN.Parser
 import qualified Network.Socket.ByteString
-import qualified UnliftIO
 
 data Transport =
     Transport_Handle Handle
   | Transport_UDP Socket SockAddr
 
 withSLCANTransport
-  :: Transport
+  :: ( MonadIO m
+     , MonadThrow m
+     )
+  => Transport
   -> SLCANConfig
-  -> (Transport -> IO a)
-  -> IO a
+  -> (Transport -> m a)
+  -> m a
 withSLCANTransport transport SLCANConfig{..} act = do
   let sendC = sendSLCANControl transport
-  Control.Exception.finally
+  finally
     (do
        sendC SLCANControl_Close
        sendC (SLCANControl_Bitrate slCANConfigBitrate)
@@ -66,26 +61,29 @@ withSLCANTransport transport SLCANConfig{..} act = do
     (sendC SLCANControl_Close)
 
 sendSLCANMessage
-  :: Transport
+  :: MonadIO m
+  => Transport
   -> SLCANMessage
-  -> IO ()
-sendSLCANMessage (Transport_Handle handle) msg = do
+  -> m ()
+sendSLCANMessage (Transport_Handle handle) msg = liftIO $ do
   Control.Monad.void
     $ Data.ByteString.hPutStr
         handle
         $ Network.SLCAN.Builder.buildSLCANMessage
             msg
   System.IO.hFlush handle
-sendSLCANMessage (Transport_UDP socket target) msg = do
-  Network.Socket.ByteString.sendAllTo
-    socket
-    (Network.SLCAN.Builder.buildSLCANMessage msg)
-    target
+sendSLCANMessage (Transport_UDP socket target) msg =
+  liftIO
+  $ Network.Socket.ByteString.sendAllTo
+      socket
+      (Network.SLCAN.Builder.buildSLCANMessage msg)
+      target
 
 sendSLCANControl
-  :: Transport
+  :: MonadIO m
+  => Transport
   -> SLCANControl
-  -> IO ()
+  -> m ()
 sendSLCANControl t =
   sendSLCANMessage t
   . SLCANMessage_Control
@@ -128,30 +126,6 @@ sendCANMessage t =
   sendSLCANMessage t
   . SLCANMessage_Data
 
-newtype SLCANT m a = SLCANT
-  { _unSLCANT :: ReaderT Transport m a }
-  deriving
-    ( Functor
-    , Applicative
-    , Monad
-    , MonadReader Transport
-    , MonadIO
-    , MonadUnliftIO
-    )
-
-instance MonadTrans SLCANT where
-  lift = SLCANT . lift
-
--- | Run SLCANT transformer
-runSLCANT
-  :: Monad m
-  => Transport
-  -> SLCANT m a
-  -> m a
-runSLCANT t =
-    (`runReaderT` t)
-  . _unSLCANT
-
 data SLCANException = SLCANException_ParseError String
     deriving Show
 
@@ -159,35 +133,36 @@ instance Exception SLCANException
 
 runSLCAN
   :: ( MonadIO m
-     , MonadUnliftIO m
+     , MonadThrow m
      )
   => Transport
   -> SLCANConfig
-  -> SLCANT m a
+  -> (CANEndpoint m -> m a)
   -> m a
 runSLCAN transport config act = do
-  UnliftIO.withRunInIO $ \runInIO ->
-    withSLCANTransport
-      transport
-      config
-      (\t -> runInIO (runSLCANT t act))
-
-instance MonadIO m => MonadCAN (SLCANT m) where
-  send cm = do
-    ask >>= liftIO . flip sendCANMessage cm
-  recv = do
-    transport <- ask
-    liftIO
-      (recvSLCANMessage transport)
-    >>= \case
-      Left e ->
-        UnliftIO.throwIO $ SLCANException_ParseError e
-      Right (SLCANMessage_Data cm) ->
-        pure cm
-      Right _other ->
-        -- TODO: do something with
-        -- SLCANMessage_Error
-        -- and SLCANMessage_State
-        -- like allow registering handlers for these
-        -- or throwIO on _Error one
-        recv
+  withSLCANTransport
+    transport
+    config
+    $ \t ->
+        act
+          CANEndpoint
+            { canEndpointSend = liftIO . sendCANMessage t
+            , canEndpointRecv =
+                let
+                  recv =
+                    liftIO
+                      (recvSLCANMessage t)
+                    >>= \case
+                      Left e ->
+                        throwIO $ SLCANException_ParseError e
+                      Right (SLCANMessage_Data cm) ->
+                        pure cm
+                      Right _other ->
+                        -- TODO: do something with
+                        -- SLCANMessage_Error
+                        -- and SLCANMessage_State
+                        -- like allow registering handlers for these
+                        -- or throwIO on _Error one
+                        recv
+                in recv
+            }
