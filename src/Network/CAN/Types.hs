@@ -8,12 +8,14 @@ module Network.CAN.Types
   -- * Message
   , CANMessage(..)
   , standardMessage
+  , prettyCANMessage
   ) where
 
 import Data.Word (Word8, Word16, Word32)
 import Test.QuickCheck (Arbitrary(..))
 
 import qualified Test.QuickCheck
+import qualified Text.Printf
 
 -- * Arbitration
 
@@ -89,3 +91,40 @@ standardMessage cid cdata = CANMessage
   { canMessageArbitrationField = standardID cid
   , canMessageData = cdata
   }
+
+-- | Pretty print @CANMessage@ similar to candump output
+--
+-- > prettyCANMessage (standardMessage 123 [0x13, 0x37])
+-- "     07B   [2]  13 37"
+-- > prettyCANMessage (CANMessage (extendedID 123) [0x13, 0x37])
+-- "0000007B   [2]  13 37"
+prettyCANMessage
+  :: CANMessage
+  -> String
+prettyCANMessage msg =
+  unwords
+    $ [ prettyArb
+          $ canMessageArbitrationField msg
+      , "  [" <> show (length $ canMessageData msg) <> "] "
+      ]
+      ++ prettyData
+           (canArbitrationFieldRTR $ canMessageArbitrationField msg)
+           (canMessageData msg)
+  where
+    prettyArb arb | canArbitrationFieldExtended arb =
+      hexFixed
+        8
+        $ canArbitrationFieldID arb
+    prettyArb arb | otherwise =
+         replicate 5 ' '
+      <> hexFixed
+          3
+          (canArbitrationFieldID arb)
+
+    prettyData :: Bool -> [Word8] -> [String]
+    prettyData True _ = pure "remote request"
+    prettyData _    x = map (hexFixed 2) x
+
+    hexFixed width =
+      Text.Printf.printf
+        $ "%0" <> show (width :: Int) <> "X"

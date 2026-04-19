@@ -1,6 +1,6 @@
 module Main where
 
-import Control.Monad.IO.Class
+import Control.Monad.Class.MonadSay (MonadSay(say))
 import Data.Default.Class (Default(def))
 import System.Hardware.Serialport (CommSpeed(..), SerialPortSettings(..))
 import Network.CAN (CANEndpoint)
@@ -29,7 +29,7 @@ main = do
     act
 
 act
-  :: MonadIO m
+  :: MonadSay m
   => CANEndpoint m
   -> m ()
 act can = do
@@ -43,4 +43,4 @@ act can = do
   Control.Monad.forever
     $ Network.CAN.recv
         can
-      >>= Control.Monad.IO.Class.liftIO . print
+      >>= say . Network.CAN.prettyCANMessage

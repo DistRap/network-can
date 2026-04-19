@@ -80,7 +80,8 @@ test-suite pure
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs:      test
   main-is:             Spec.hs
-  other-modules:       Samples
+  other-modules:       CANSpec
+                       Samples
                        SLCANSpec
                        SocketCANSpec
   build-tool-depends:  hspec-discover:hspec-discover
@@ -123,11 +124,13 @@ executable hslcanserial
                      , network-can
                      , network-can:slcan
                      , data-default-class
+                     , io-classes
                      , serialport >= 0.5.5
   main-is:             SLCANSerial.hs
   hs-source-dirs:      app
 
 executable hslcanudp
+  import:              commons, execs
   if !flag(build-apps)
     buildable: False
   build-depends:       base >=4.7 && <5
@@ -135,10 +138,9 @@ executable hslcanudp
                      , network-can
                      , network-can:slcan
                      , data-default-class
-  default-language:    Haskell2010
+                     , io-classes
   main-is:             SLCANUDP.hs
   hs-source-dirs:      app
-  ghc-options:         -Wall -threaded -rtsopts "-with-rtsopts -N"
 
 source-repository head
   type:     git

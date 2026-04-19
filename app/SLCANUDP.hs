@@ -1,6 +1,6 @@
 module Main where
 
-import Control.Monad.IO.Class
+import Control.Monad.Class.MonadSay (MonadSay(say))
 import Data.Default.Class (Default(def))
 import Network.CAN (CANEndpoint)
 import Network.SLCAN (Transport(..))
@@ -44,7 +44,7 @@ main = do
     (_, _) -> error "getAddrInfo fail"
 
 act
-  :: MonadIO m
+  :: MonadSay m
   => CANEndpoint m
   -> m ()
 act can = do
@@ -57,4 +57,4 @@ act can = do
   Control.Monad.forever
     $ Network.CAN.recv
         can
-      >>= Control.Monad.IO.Class.liftIO . print
+      >>= say . Network.CAN.prettyCANMessage
