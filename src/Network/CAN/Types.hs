@@ -18,9 +18,9 @@ import qualified Test.QuickCheck
 -- * Arbitration
 
 data CANArbitrationField = CANArbitrationField
-  { canArbitrationFieldID :: Word32 -- ^ CAN ID
-  , canArbitrationFieldExtended :: Bool -- ^ Extended CAN ID
-  , canArbitrationFieldRTR :: Bool -- ^ Remote transmission request
+  { canArbitrationFieldID       :: Word32 -- ^ CAN ID
+  , canArbitrationFieldExtended :: Bool   -- ^ Extended CAN ID
+  , canArbitrationFieldRTR      :: Bool   -- ^ Remote transmission request
   } deriving (Eq, Ord, Show)
 
 instance Arbitrary CANArbitrationField where
