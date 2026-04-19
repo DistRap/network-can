@@ -17,7 +17,7 @@ import Control.Monad.Class.MonadThrow (Exception(..), MonadThrow(throwIO), final
 import Control.Monad.IO.Class (MonadIO(..))
 
 import Network.Socket (Socket, SockAddr)
-import Network.CAN (CANMessage, CANEndpoint(..))
+import Network.CAN (CANMessage, CAN(..))
 import Network.SLCAN.Types
 import System.IO (Handle)
 
@@ -137,7 +137,7 @@ withSLCAN
      )
   => Transport
   -> SLCANConfig
-  -> (CANEndpoint m -> m a)
+  -> (CAN m -> m a)
   -> m a
 withSLCAN transport config act = do
   withSLCANTransport
@@ -145,9 +145,9 @@ withSLCAN transport config act = do
     config
     $ \t ->
         act
-          CANEndpoint
-            { canEndpointSend = liftIO . sendCANMessage t
-            , canEndpointRecv =
+          CAN
+            { canSend = liftIO . sendCANMessage t
+            , canRecv =
                 let
                   recv =
                     liftIO

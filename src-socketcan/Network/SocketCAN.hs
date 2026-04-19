@@ -9,7 +9,7 @@ module Network.SocketCAN
   , withSocketCAN
   ) where
 
-import Network.CAN (CANMessage, CANEndpoint(..))
+import Network.CAN (CANMessage, CAN(..))
 import Network.Socket (Socket)
 import Network.SocketCAN.Bindings (SockAddrCAN(..))
 
@@ -76,7 +76,7 @@ withSocketCAN
      , MonadThrow m
      )
   => CANInterface
-  -> (CANEndpoint m -> m a)
+  -> (CAN m -> m a)
   -> m a
 withSocketCAN interface act = do
   mIdx <-
@@ -90,7 +90,7 @@ withSocketCAN interface act = do
         idx
         $ \sock ->
             act
-              CANEndpoint
-                { canEndpointSend = liftIO . sendCANMessage sock
-                , canEndpointRecv = liftIO $ recvCANMessage sock
+              CAN
+                { canSend = liftIO . sendCANMessage sock
+                , canRecv = liftIO $ recvCANMessage sock
                 }

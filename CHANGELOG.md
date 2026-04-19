@@ -2,12 +2,12 @@
 
 * Split `slcan` and `socketcan` into public sublibraries
 * Migrate to `io-classes` and switch from `MonadCAN` typeclass
-  to `CANEndpoint` handle (record of functions style):
+  to `CAN` handle (record of functions style):
 
   ```
-  data CANEndpoint m = CANEndpoint
-  { canEndpointSend :: CANMessage -> m ()
-  , canEndpointRecv :: m CANMessage
+  data CAN m = CAN
+  { canSend :: CANMessage -> m ()
+  , canRecv :: m CANMessage
   }
   ```
 * Runners renamed

@@ -3,7 +3,7 @@ module Main where
 import Control.Monad.Class.MonadSay (MonadSay(say))
 import Data.Default.Class (Default(def))
 import System.Hardware.Serialport (CommSpeed(..), SerialPortSettings(..))
-import Network.CAN (CANEndpoint)
+import Network.CAN (CAN)
 import Network.SLCAN (Transport(..))
 
 import qualified Control.Monad
@@ -30,7 +30,7 @@ main = do
 
 act
   :: MonadSay m
-  => CANEndpoint m
+  => CAN m
   -> m ()
 act can = do
   Network.CAN.send

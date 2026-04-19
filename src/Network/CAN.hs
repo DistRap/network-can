@@ -1,5 +1,5 @@
 module Network.CAN
-  ( CANEndpoint(..)
+  ( CAN(..)
   , send
   , recv
   , module Network.CAN.Types
@@ -7,18 +7,18 @@ module Network.CAN
 
 import Network.CAN.Types
 
-data CANEndpoint m = CANEndpoint
-  { canEndpointSend :: CANMessage -> m ()
-  , canEndpointRecv :: m CANMessage
+data CAN m = CAN
+  { canSend :: CANMessage -> m ()
+  , canRecv :: m CANMessage
   }
 
 send
-  :: CANEndpoint m
+  :: CAN m
   -> CANMessage
   -> m ()
-send = canEndpointSend
+send = canSend
 
 recv
-  :: CANEndpoint m
+  :: CAN m
   -> m CANMessage
-recv = canEndpointRecv
+recv = canRecv
