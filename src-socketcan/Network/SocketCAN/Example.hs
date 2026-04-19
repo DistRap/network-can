@@ -14,7 +14,7 @@ example = do
   case mIdx of
     Nothing -> error $ "Interface " <> interface <> " not found"
     Just idx ->
-      withSocketCAN idx act
+      withSocket idx act
 
 act :: Socket -> IO ()
 act sock = do

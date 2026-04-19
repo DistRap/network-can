@@ -10,7 +10,10 @@
   , canEndpointRecv :: m CANMessage
   }
   ```
-
+* Runners renamed
+  * `runSocketCAN` is now `withSocketCAN`
+  * `runSLCAN` is now `withSLCAN`
+  to reflect the handle change
 
 # Version [0.1.0.0](https://github.com/DistRap/network-can/compare/d50564...0.1.0.0) (2025-05-19)
 

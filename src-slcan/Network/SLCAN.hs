@@ -10,7 +10,7 @@ module Network.SLCAN
   , sendCANMessage
   , module Network.SLCAN.Types
   , SLCANException(..)
-  , runSLCAN
+  , withSLCAN
   ) where
 
 import Control.Monad.Class.MonadThrow (Exception(..), MonadThrow(throwIO), finally)
@@ -131,7 +131,7 @@ data SLCANException = SLCANException_ParseError String
 
 instance Exception SLCANException
 
-runSLCAN
+withSLCAN
   :: ( MonadIO m
      , MonadThrow m
      )
@@ -139,7 +139,7 @@ runSLCAN
   -> SLCANConfig
   -> (CANEndpoint m -> m a)
   -> m a
-runSLCAN transport config act = do
+withSLCAN transport config act = do
   withSLCANTransport
     transport
     config

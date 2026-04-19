@@ -23,7 +23,7 @@ main = do
         { commSpeed = CS115200 }
       )
 
-  Network.SLCAN.runSLCAN
+  Network.SLCAN.withSLCAN
     (Transport_Handle h)
     def
     act

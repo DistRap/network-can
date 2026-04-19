@@ -20,8 +20,8 @@ main = do
     (System.Hardware.Serialport.defaultSerialSettings
       { commSpeed = CS115200 }
     )
-  Network.SLCAN.runSLCAN (Transport_Handle h) def $ \slcan -> do
-    Network.SocketCAN.runSocketCAN (Network.SocketCAN.mkCANInterface "vcan0") $ \socketcan -> do
+  Network.SLCAN.withSLCAN (Transport_Handle h) def $ \slcan -> do
+    Network.SocketCAN.withSocketCAN (Network.SocketCAN.mkCANInterface "vcan0") $ \socketcan -> do
         race_
           (Control.Monad.forever
            $ Network.CAN.recv slcan >>= Network.CAN.send socketcan

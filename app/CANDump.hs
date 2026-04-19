@@ -7,7 +7,7 @@ import qualified Network.SocketCAN
 
 main :: IO ()
 main = do
-  Network.SocketCAN.runSocketCAN
+  Network.SocketCAN.withSocketCAN
     (Network.SocketCAN.mkCANInterface "vcan0")
     $ \can ->
       (Control.Monad.forever

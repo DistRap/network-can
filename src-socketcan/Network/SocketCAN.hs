@@ -1,12 +1,12 @@
 module Network.SocketCAN
-  ( withSocketCAN
+  ( withSocket
   , sendCANMessage
   , recvCANMessage
   , Network.Socket.ifNameToIndex
   , CANInterface
   , mkCANInterface
   , NoSuchInterface(..)
-  , runSocketCAN
+  , withSocketCAN
   ) where
 
 import Network.CAN (CANMessage, CANEndpoint(..))
@@ -20,14 +20,14 @@ import qualified Network.Socket (ifNameToIndex)
 import qualified Network.SocketCAN.LowLevel
 import qualified Network.SocketCAN.Translate
 
-withSocketCAN
+withSocket
   :: ( MonadIO m
      , MonadThrow m
      )
   => Int
   -> (Socket -> m a)
   -> m a
-withSocketCAN ifaceIdx act = do
+withSocket ifaceIdx act = do
   bracket
     (liftIO Network.SocketCAN.LowLevel.socket)
     (liftIO . Network.SocketCAN.LowLevel.close)
@@ -71,14 +71,14 @@ data NoSuchInterface = NoSuchInterface
 
 instance Exception NoSuchInterface
 
-runSocketCAN
+withSocketCAN
   :: ( MonadIO m
      , MonadThrow m
      )
   => CANInterface
   -> (CANEndpoint m -> m a)
   -> m a
-runSocketCAN interface act = do
+withSocketCAN interface act = do
   mIdx <-
     liftIO
     $ Network.Socket.ifNameToIndex (unCANInterface interface)
@@ -86,7 +86,7 @@ runSocketCAN interface act = do
   case mIdx of
     Nothing -> throwIO NoSuchInterface
     Just idx ->
-      withSocketCAN
+      withSocket
         idx
         $ \sock ->
             act

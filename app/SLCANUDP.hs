@@ -36,7 +36,7 @@ main = do
         sock
         (addrAddress ourAddrinfo)
 
-      Network.SLCAN.runSLCAN
+      Network.SLCAN.withSLCAN
         (Transport_UDP sock (addrAddress targetAddrinfo))
         def
         act
