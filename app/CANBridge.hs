@@ -2,7 +2,7 @@
 module Main where
 
 import Control.Monad.Class.MonadAsync (race_)
-import Data.Default.Class (Default(def))
+import Data.Default (Default(def))
 import Network.SLCAN (Transport(..))
 import System.Hardware.Serialport (CommSpeed(..), SerialPortSettings(..))
 

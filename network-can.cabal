@@ -60,7 +60,7 @@ library slcan
                      , attoparsec >= 0.14
                      , bytestring
                      , containers
-                     , data-default-class
+                     , data-default
                      , io-classes
                      , network >= 3.1
                      , network-can
@@ -116,7 +116,7 @@ executable hcanbridge
                      , network-can
                      , network-can:slcan
                      , network-can:socketcan
-                     , data-default-class
+                     , data-default
                      , io-classes
                      , serialport >= 0.5.5
   main-is:             CANBridge.hs
@@ -129,7 +129,7 @@ executable hslcanserial
   build-depends:       base >=4.7 && <5
                      , network-can
                      , network-can:slcan
-                     , data-default-class
+                     , data-default
                      , io-classes
                      , serialport >= 0.5.5
   main-is:             SLCANSerial.hs
@@ -143,7 +143,7 @@ executable hslcanudp
                      , network
                      , network-can
                      , network-can:slcan
-                     , data-default-class
+                     , data-default
                      , io-classes
   main-is:             SLCANUDP.hs
   hs-source-dirs:      app

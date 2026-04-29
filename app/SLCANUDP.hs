@@ -1,7 +1,7 @@
 module Main where
 
 import Control.Monad.Class.MonadSay (MonadSay(say))
-import Data.Default.Class (Default(def))
+import Data.Default (Default(def))
 import Network.CAN (CAN)
 import Network.SLCAN (Transport(..))
 import Network.Socket (AddrInfo(..), SocketType(Datagram))
