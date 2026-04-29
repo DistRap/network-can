@@ -1,3 +1,5 @@
+# Version [next](https://github.com/DistRap/network-can/compare/0.2.0.0...master) (2026-MM-DD)
+
 # Version [0.2.0.0](https://github.com/DistRap/network-can/compare/0.1.0.0...0.2.0.0) (2026-04-29)
 
 * Split `slcan` and `socketcan` into public sublibraries
