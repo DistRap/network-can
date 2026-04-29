@@ -1,3 +1,5 @@
+flags: +build-apps +build-readme
+
 multi-repl: true
 
 packages: .
