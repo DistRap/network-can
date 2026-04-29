@@ -1,6 +1,6 @@
 cabal-version:       3.0
 name:                network-can
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            CAN bus networking
 description:         Talk to CAN buses using Linux SocketCAN and SLCAN
 homepage:            https://github.com/DistRap/network-can
