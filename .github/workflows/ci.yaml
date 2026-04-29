@@ -38,9 +38,9 @@ jobs:
     strategy:
       matrix:
         cabal:
-        - '3.12'
+        - '3.16'
         ghc:
-        - '9.8.2'
+        - '9.8.4'
         os:
         - "ubuntu-latest"
 name: Haskell CI

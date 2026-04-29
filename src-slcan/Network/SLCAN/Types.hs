@@ -10,7 +10,7 @@ module Network.SLCAN.Types
   , SLCANConfig(..)
   ) where
 
-import Data.Default.Class (Default(def))
+import Data.Default (Default(def))
 import Data.Set (Set)
 import Data.Word (Word16)
 import Network.CAN.Types (CANMessage)
