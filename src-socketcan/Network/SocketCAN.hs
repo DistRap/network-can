@@ -3,7 +3,7 @@ module Network.SocketCAN
   , sendCANMessage
   , recvCANMessage
   , Network.Socket.ifNameToIndex
-  , CANInterface
+  , CANInterface(..)
   , mkCANInterface
   , NoSuchInterface(..)
   , withSocketCAN
